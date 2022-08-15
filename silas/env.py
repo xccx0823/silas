@@ -39,7 +39,8 @@ class EnvConfig(SettingBase):
                 continue
 
             # EnvField
-            if isinstance(default_value, EnvField):
+            env_field_obj = None
+            if isinstance(default_value, Env):
                 env_field_obj = default_value
                 default_value = env_field_obj.value
                 if env_field_obj.use_prefix and prefix:
@@ -64,6 +65,11 @@ class EnvConfig(SettingBase):
             # The default value
             value = value or default_value
 
+            # Map
+            if value is not None and env_field_obj and env_field_obj.mp:
+                un_match_value = value if env_field_obj.un_match_mp else None
+                value = env_field_obj.mp.get(value, un_match_value)
+
             env_dict.update({
                 original_key: value
             })
@@ -72,7 +78,9 @@ class EnvConfig(SettingBase):
 
     def __init__(self):
         if not self.g:
-            self.g = SettingDict(self._get_envs())
+            _g = self._get_envs()
+            _g_sort = sorted(_g.items(), key=lambda item: item[0])
+            self.g = SettingDict(_g_sort)
         super().__init__()
 
     def refresh(self, key):
@@ -86,36 +94,70 @@ class EnvConfig(SettingBase):
     def present_get(self, key):
         """ Gets the current latest value
         """
-        typ = self.__class__.__annotations__.get(key)
+        # The original key
+        original_key = key
+
+        # Default value
         default_value = self.__class__.__dict__.get(key)
+
+        # prefix
         prefix = self.Meta.prefix
         if prefix:
             self.get_env(key)
 
+        # Filter unwanted attributes
+        if key.startswith('_') or key == 'Meta':
+            return
 
-class EnvField:
+        # EnvField
+        env_field_obj = None
+        if isinstance(default_value, Env):
+            env_field_obj = default_value
+            default_value = env_field_obj.value
+            if env_field_obj.use_prefix and prefix:
+                key = prefix + key
+        else:
+            # Add a prefix
+            if prefix:
+                key = prefix + key
+
+        # Getting environment variables
+        value = self.get_env(key)
+
+        # Conversion type
+        typ = self.__class__.__annotations__.get(key)
+        if typ:
+            value = self.trans_env_type(original_key, value, typ)
+
+        # Checking environment variables is mandatory
+        if value is None and default_value is None:
+            raise UnsetEnvError(f'No environment variables are configured `{key}`')
+
+        # The default value
+        value = value or default_value
+
+        # Map
+        if value is not None and env_field_obj and env_field_obj.mp:
+            un_match_value = value if env_field_obj.un_match_mp else None
+            value = env_field_obj.mp.get(value, un_match_value)
+
+        # The default value
+        return value
+
+
+class Env:
     """ A class that adds functionality to defined class attributes
     """
 
-    def __init__(self, value=None, use_prefix=False):
+    def __init__(self, value=None, mp: dict = None, use_prefix: bool = False, un_match_mp=True):
         """ ~class.EnvField.obj
 
         :param value: Default value when environment variables are not set
-        :param use_prefix: Whether to use prefix. the default is False
-        """
-        self.value = value
-        self.use_prefix = use_prefix
-
-
-class EnvMap:
-    """ Adds a mapped class to a defined class attribute
-    """
-
-    def __init__(self, mp=None, use_prefix=False):
-        """ ~class.EnvMap.obj
-
         :param mp: Value Map
         :param use_prefix: Whether to use prefix. the default is False
+        :param un_match_mp: Whether to fill in the original value when no data is matched
         """
+        self.value = value
         self.mp = mp
         self.use_prefix = use_prefix
+        self.un_match_mp = un_match_mp

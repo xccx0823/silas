@@ -10,7 +10,7 @@ class SettingDict(dict):
     """ setting dict
     """
 
-    def __init__(self, dic: dict):
+    def __init__(self, dic):
         super().__init__(dic)
 
     def __getattr__(self, item):
