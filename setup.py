@@ -21,9 +21,11 @@ def find_version(path):
 setup(
     name='silas',
     version=find_version('silas/__init__.py'),
-    auchor='cheerxiong0823@163.com',
+    author='XChao',
+    author_email='cheerxiong0823@163.com',
     description='Fast and convenient configuration reading.',
     long_description='README.md',
+    url='',
     packages=find_packages(),
     include_package_data=True,
     install_requires=read('requirements.txt').splitlines(),
