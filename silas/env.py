@@ -77,7 +77,7 @@ class EnvConfig(SettingBase):
         original_key = key
 
         # prefix
-        prefix = self.Meta.prefix
+        prefix = self.Meta.__dict__.get('prefix')
         if prefix:
             self.get_env(key)
 
