@@ -28,47 +28,16 @@ class EnvConfig(SettingBase):
 
         env_dict = {}
         for key in set(_attribute) | set(_annotations):
-            # The original key
-            original_key = key
-
-            # Default value
-            default_value = _attribute.get(key)
 
             # Filter unwanted attributes
             if key.startswith('_') or key == 'Meta':
                 continue
 
-            # EnvField
-            env_field_obj = None
-            if isinstance(default_value, Env):
-                env_field_obj = default_value
-                default_value = env_field_obj.value
-                if env_field_obj.use_prefix and prefix:
-                    key = prefix + key
-            else:
-                # Add a prefix
-                if prefix:
-                    key = prefix + key
+            # The original key
+            original_key = key
 
-            # Getting environment variables
-            value = self.get_env(key)
-
-            # Conversion type
-            typ = _annotations.get(original_key)
-            if typ:
-                value = self.trans_env_type(original_key, value, typ)
-
-            # Checking environment variables is mandatory
-            if value is None and default_value is None:
-                raise UnsetEnvError(f'No environment variables are configured `{key}`')
-
-            # The default value
-            value = value or default_value
-
-            # Map
-            if value is not None and env_field_obj and env_field_obj.mp:
-                un_match_value = value if env_field_obj.un_match_mp else None
-                value = env_field_obj.mp.get(value, un_match_value)
+            # Parse a single column rule
+            value = self._parse_single_column(key, original_key, prefix, _attribute, _annotations)
 
             env_dict.update({
                 original_key: value
@@ -93,20 +62,37 @@ class EnvConfig(SettingBase):
     def present_get(self, key):
         """ Gets the current latest value
         """
+        # Filter unwanted attributes
+        if key.startswith('_') or key == 'Meta':
+            return
+
+        # The class of the object
+        _class = self.__class__
+        # All properties of the class
+        _attribute = _class.__dict__
+        # A variable whose type is defined
+        _annotations = _attribute.get('__annotations__', {})
+
         # The original key
         original_key = key
-
-        # Default value
-        default_value = self.__class__.__dict__.get(key)
 
         # prefix
         prefix = self.Meta.prefix
         if prefix:
             self.get_env(key)
 
-        # Filter unwanted attributes
-        if key.startswith('_') or key == 'Meta':
-            return
+        # Parse a single column rule
+        value = self._parse_single_column(key, original_key, prefix, _attribute, _annotations)
+
+        # The default value
+        return value
+
+    def _parse_single_column(self, key, original_key, prefix, _attribute, _annotations):
+        """ Parse a single column rule
+        """
+
+        # Default value
+        default_value = _attribute.get(key)
 
         # EnvField
         env_field_obj = None
@@ -124,12 +110,12 @@ class EnvConfig(SettingBase):
         value = self.get_env(key)
 
         # Conversion type
-        typ = self.__class__.__annotations__.get(original_key)
+        typ = _annotations.get(original_key) or str
         if typ:
             value = self.trans_env_type(original_key, value, typ)
 
         # Checking environment variables is mandatory
-        if value is None and default_value is None:
+        if value is None and original_key not in _attribute:
             raise UnsetEnvError(f'No environment variables are configured `{key}`')
 
         # The default value
@@ -140,7 +126,6 @@ class EnvConfig(SettingBase):
             un_match_value = value if env_field_obj.un_match_mp else None
             value = env_field_obj.mp.get(value, un_match_value)
 
-        # The default value
         return value
 
 
