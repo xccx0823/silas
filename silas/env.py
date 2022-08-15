@@ -77,11 +77,10 @@ class EnvConfig(SettingBase):
         return env_dict
 
     def __init__(self):
-        if not self.g:
-            _g = self._get_envs()
-            _g_sort = sorted(_g.items(), key=lambda item: item[0])
-            self.g = SettingDict(_g_sort)
-        super().__init__()
+        _g = self._get_envs()
+        _g_sort = sorted(_g.items(), key=lambda item: item[0])
+        g = SettingDict(_g_sort)
+        super().__init__(g)
 
     def refresh(self, key):
         """ Getting environment variables

@@ -24,7 +24,8 @@ class SettingBase:
     """ config basic class
     """
 
-    g: SettingDict = {}
+    def __init__(self, g):
+        self.g: SettingDict = g
 
     class Meta:
         # Date formatting
