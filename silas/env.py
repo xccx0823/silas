@@ -124,7 +124,7 @@ class EnvConfig(SettingBase):
         value = self.get_env(key)
 
         # Conversion type
-        typ = self.__class__.__annotations__.get(key)
+        typ = self.__class__.__annotations__.get(original_key)
         if typ:
             value = self.trans_env_type(original_key, value, typ)
 

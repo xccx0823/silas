@@ -54,7 +54,7 @@ class SettingBase:
             return value
 
         try:
-            if isinstance(typ, datetime):
+            if typ is datetime:
                 fmt = self.Meta.__dict__.get('date_fmt')
                 if isinstance(fmt, str):
                     fmt_str = fmt
@@ -63,7 +63,7 @@ class SettingBase:
                 else:
                     fmt_str = '%Y-%m-%d %H:%M:%S'
                 value = datetime.strptime(value, fmt_str)
-            elif isinstance(typ, date):
+            elif typ is date:
                 fmt = self.Meta.__dict__.get('date_fmt')
                 if isinstance(fmt, str):
                     fmt_str = fmt
