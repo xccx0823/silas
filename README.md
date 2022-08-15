@@ -1,4 +1,3 @@
 # Silas
 
-面向各式各样的配置文件获取配置
-
+Fast and convenient configuration reading.
