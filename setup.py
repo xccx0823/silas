@@ -25,7 +25,7 @@ setup(
     author_email='cheerxiong0823@163.com',
     description='Fast and convenient configuration reading.',
     long_description='README.md',
-    url='',
+    url='https://github.com/xccx0823/silas',
     packages=find_packages(),
     include_package_data=True,
     install_requires=read('requirements.txt').splitlines(),
