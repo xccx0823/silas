@@ -8,10 +8,9 @@ class EnvConfig(SettingBase):
     """
 
     class Meta:
-        # prefix: Environment variable prefix; If 'prefix = 'ENV' is set, the key of the environment variable is
-        # prefixed, This is what it looks like: 'ENV_KEY'.
-        # If there are uppercase letters in the environment variable name, the uppercase prefix is used.
-        # If not, use a lower-case prefix
+        # prefix: Environment variable prefix; If 'prefix = 'ENV' is set,
+        # the key of the environment variable is prefixed, This is what
+        # it looks like: 'ENV_KEY'.
         prefix: str
 
     def _get_envs(self) -> dict:
@@ -28,9 +27,12 @@ class EnvConfig(SettingBase):
         prefix = self.Meta.__dict__.get('prefix')
 
         env_dict = {}
-        for key, default_value in _attribute.items():
+        for key in set(_attribute) | set(_annotations):
             # The original key
             original_key = key
+
+            # Default value
+            default_value = _attribute.get(key)
 
             # Filter unwanted attributes
             if key.startswith('_') or key == 'Meta':
@@ -51,9 +53,13 @@ class EnvConfig(SettingBase):
             value = self.get_env(key)
 
             # Conversion type
-            typ = _annotations.get(key)
+            typ = _annotations.get(original_key)
             if typ:
                 value = self.trans_env_type(original_key, value, typ)
+
+            # Checking environment variables is mandatory
+            if value is None and default_value is None:
+                raise UnsetEnvError(f'No environment variables are configured `{key}`')
 
             # The default value
             value = value or default_value
@@ -74,7 +80,7 @@ class EnvConfig(SettingBase):
         """
         value = self.get_env(key)
         if not value:
-            raise UnsetEnvError(f'No environment variables are configured `{value}`')
+            raise UnsetEnvError(f'No environment variables are configured `{key}`')
         self.g[key] = value
 
     def present_get(self, key):
