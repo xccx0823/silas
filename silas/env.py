@@ -24,7 +24,7 @@ class EnvConfig(SettingBase):
         _annotations = _attribute.get('__annotations__', {})
 
         # prefix
-        prefix = self.Meta.__dict__.get('prefix')
+        prefix = self._meta_get('prefix')
 
         env_dict = {}
         for key in set(_attribute) | set(_annotations):
@@ -77,7 +77,7 @@ class EnvConfig(SettingBase):
         original_key = key
 
         # prefix
-        prefix = self.Meta.__dict__.get('prefix')
+        prefix = self._meta_get('prefix')
         if prefix:
             self.get_env(key)
 

@@ -24,3 +24,23 @@ class UnrealizedError(SilasError):
 class TypeTransError(SilasError):
     """ Type conversion failed
     """
+
+
+class NoPathError(SilasError):
+    """ No address is configured.
+    """
+
+
+class FileParseError(SilasError):
+    """ File parsing failed
+    """
+
+
+class FileTypeError(SilasError):
+    """ File type error
+    """
+
+
+class VariableValueError(SilasError):
+    """ variable type error
+    """

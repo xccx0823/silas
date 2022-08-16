@@ -78,3 +78,8 @@ class SettingBase:
             raise TypeTransError(e)
 
         return value
+
+    def _meta_get(self, key):
+        """ class.Meta.__dict__
+        """
+        return self.Meta.__dict__.get(key)
