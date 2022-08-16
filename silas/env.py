@@ -47,8 +47,7 @@ class EnvConfig(SettingBase):
 
     def __init__(self):
         _g = self._get_envs()
-        _g_sort = sorted(_g.items(), key=lambda item: item[0])
-        g = SettingDict(_g_sort)
+        g = SettingDict(_g)
         super().__init__(g)
 
     def refresh(self, key):

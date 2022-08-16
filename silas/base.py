@@ -1,5 +1,6 @@
 # sys
 import os
+import json
 from datetime import date, datetime
 
 # project
@@ -11,6 +12,7 @@ class SettingDict(dict):
     """
 
     def __init__(self, dic):
+        dic = sorted(dic.items(), key=lambda item: item[0])
         super().__init__(dic)
 
     def __getattr__(self, item):
@@ -18,6 +20,14 @@ class SettingDict(dict):
 
     def __setattr__(self, key, value):
         self[key] = value
+
+    def __repr__(self):
+        print_msg = 'Config:\n'
+        for key, value in self.items():
+            json_value = json.dumps(value, indent=4, sort_keys=True)
+            single = f"\n>> {key}: {json_value}\n"
+            print_msg += single
+        return print_msg
 
 
 class SettingBase:
@@ -83,3 +93,14 @@ class SettingBase:
         """ class.Meta.__dict__
         """
         return self.Meta.__dict__.get(key)
+
+    def _cls_custom_config(self):
+        """ Gets all custom class properties
+        """
+        config = dict(
+            filter(
+                lambda x: not x[0].startswith('_') and x[0] != 'Meta',
+                self.__class__.__dict__.items()
+            )
+        )
+        return config
